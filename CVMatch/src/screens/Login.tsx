@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
+import { useUserStore } from '../stores/userStore';
+import { login } from '../api/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validated, setValidated] = useState(false);
   const [error, setError] = useState('');
+  const { setUser } = useUserStore();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     const form = e.currentTarget;
@@ -20,8 +23,19 @@ export default function Login() {
     }
 
     setValidated(true);
-    // TODO: Replace with actual API call
-    console.log('Login:', { email, password });
+
+    try {
+      const data = await login({ email, password });
+      setUser({
+        id: data.id,
+        email: data.email,
+      });
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      );
+    }
   };
 
   return (
@@ -88,3 +102,4 @@ export default function Login() {
     </Container>
   );
 }
+

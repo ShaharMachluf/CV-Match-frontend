@@ -1,21 +1,47 @@
 import { Link } from 'react-router-dom';
-import { Container, Form, Button, Card } from 'react-bootstrap';
+import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
 import { useState } from 'react';
+import { useUserStore } from '../stores/userStore';
+import { signup } from '../api/auth';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [validated, setValidated] = useState(false);
+  const { setUser } = useUserStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: hook this up to your signup API
-    if (password !== confirmPassword) {
-      // In a real app, replace with nicer UI feedback
-      alert('Passwords do not match');
+    setError('');
+    const form = e.currentTarget;
+
+    if (!form.checkValidity()) {
+      e.stopPropagation();
+      setValidated(true);
       return;
     }
-    console.log({ email, password, confirmPassword });
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setValidated(true);
+
+    try {
+      const data = await signup({ email, password });
+      setUser({
+        id: data.id,
+        email: data.email,
+      });
+    } catch (err) {
+      console.error(err);
+      setError(
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      );
+    }
   };
 
   return (
@@ -26,7 +52,13 @@ export default function Signup() {
             Sign up
           </Card.Title>
 
-          <Form onSubmit={handleSubmit}>
+          {error && (
+            <Alert variant="danger" dismissible onClose={() => setError('')}>
+              {error}
+            </Alert>
+          )}
+
+          <Form noValidate validated={validated} onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="signupEmail">
               <Form.Label>Email address</Form.Label>
               <Form.Control
@@ -46,6 +78,7 @@ export default function Signup() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
               />
             </Form.Group>
 
@@ -57,6 +90,7 @@ export default function Signup() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                minLength={6}
               />
             </Form.Group>
 
@@ -73,3 +107,4 @@ export default function Signup() {
     </Container>
   );
 }
+
