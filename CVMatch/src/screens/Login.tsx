@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useUserStore } from '../stores/userStore';
 import { login } from '../api/auth';
@@ -10,7 +10,7 @@ export default function Login() {
   const [validated, setValidated] = useState(false);
   const [error, setError] = useState('');
   const { setUser } = useUserStore();
-
+  const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
@@ -26,10 +26,12 @@ export default function Login() {
 
     try {
       const data = await login({ email, password });
+      console.log(data);
       setUser({
         id: data.id,
-        email: data.email,
+        email: email,
       });
+      navigate('/home');
     } catch (err) {
       console.error(err);
       setError(

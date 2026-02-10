@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Container, Form, Button, Card, Alert } from 'react-bootstrap';
 import { useState } from 'react';
 import { useUserStore } from '../stores/userStore';
@@ -11,7 +11,7 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [validated, setValidated] = useState(false);
   const { setUser } = useUserStore();
-
+  const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
@@ -36,6 +36,7 @@ export default function Signup() {
         id: data.id,
         email: data.email,
       });
+      navigate('/home');
     } catch (err) {
       console.error(err);
       setError(
